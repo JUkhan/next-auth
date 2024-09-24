@@ -6,12 +6,14 @@ import { useMediaQuery } from "usehooks-ts"
 import { Button } from "./button"
 import { Cross, ArrowLeft } from "lucide-react"
 
+
 const Dialog = ({
     className,
     children,
     open,
+    crossBtnPosition="right-0",
     ...props
-}: React.HTMLAttributes<HTMLDialogElement> & { open?: boolean }) => {
+}: React.HTMLAttributes<HTMLDialogElement> & { open?: boolean, crossBtnPosition?: string }) => {
     const [isClient, setIsClient] = React.useState(false)
     const isMobile = useMediaQuery('(max-width: 768px)');
     const dialogRef = React.useRef<HTMLDialogElement>(null);
@@ -29,8 +31,8 @@ const Dialog = ({
     const mobileClass = isMobile ? `absolute w-screen h-screen rounded-none m-0 left-0 top-0` : "";
     if (!isClient) return null;
     return (
-        <dialog ref={dialogRef} className={cn("bg-white rounded-lg relative", className, mobileClass)} {...props}>
-            <Button onClick={closeDialog} variant={"ghost"} className={cn("absolute top-0", isMobile ? "left-0" : "right-0")}>
+        <dialog ref={dialogRef} className={cn("bg-white rounded-lg relative overflow-visible", className, mobileClass)} {...props}>
+            <Button onClick={closeDialog} variant={"ghost"} className={cn("absolute top-0", isMobile ? "left-0" : crossBtnPosition)}>
                 {isMobile ? <ArrowLeft className="w-4 h-4" /> : <Cross className="w-4 h-4" />}
             </Button>
             {children}
