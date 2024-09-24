@@ -63,7 +63,12 @@ const DialogContent: React.FC<DialogContentProps> = ({ children, className, cros
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50" onClick={closeDialog}>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50" onClick={closeDialog}>
                         <motion.div
                             className={cn("bg-white rounded-lg shadow-lg relative", className, mobileClass)}
                             initial={{ opacity: 0, scale: 0.5 }}
@@ -77,7 +82,7 @@ const DialogContent: React.FC<DialogContentProps> = ({ children, className, cros
                             </Button>
                             {children}
                         </motion.div>
-                    </div>
+                    </motion.div>
                 </>
             )}
         </AnimatePresence>
