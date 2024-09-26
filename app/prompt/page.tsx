@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { headers } from "next/headers";
-import { Label } from "@/components/ui/label";
+
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog2";
 import LegalConsultation from './DialogContent';
 

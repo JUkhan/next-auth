@@ -51,9 +51,9 @@ const DialogTrigger = ({
     const isMobile = useMediaQuery('(max-width: 768px)');
     return React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-            return React.cloneElement(child, {
+            return React.cloneElement(child as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>, {
                 onClick: (e: React.MouseEvent) => {
-                    child.props.onClick?.(e);
+                    (child as React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>).props.onClick?.(e);
                     const dialog = document.getElementById(dialogId) as HTMLDialogElement;
                     if (open) {
                         isMobile ? dialog?.show() : dialog?.showModal();
@@ -63,7 +63,7 @@ const DialogTrigger = ({
                         isMobile ? dialog?.show() : dialog?.showModal();
                     }
                 }
-            } as any);
+            });
         }
         return child;
     });

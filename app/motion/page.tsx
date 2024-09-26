@@ -4,11 +4,11 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog2';
 import { Button } from '@/components/ui/button';
-import { useMediaQuery } from 'usehooks-ts';
+
 
 
 const MotionPage: React.FC = () => {
-    const [isVisible, setIsVisible] = React.useState(false);
+    const [isVisible] = React.useState(false);
 
     return (
         <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-500 to-purple-600">

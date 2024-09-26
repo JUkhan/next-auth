@@ -99,9 +99,9 @@ const DialogTrigger = ({
     const { openDialog, closeDialog } = useDialog();
     return React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-            return React.cloneElement(child, {
+            return React.cloneElement(child as React.ReactElement<{ onClick?: React.MouseEventHandler }>, {
                 onClick: (e: React.MouseEvent) => {
-                    child.props.onClick?.(e);
+                    (child as React.ReactElement<{ onClick?: React.MouseEventHandler }>).props.onClick?.(e);
                     if (open) {
                         openDialog();
                     } else if (close) {
@@ -110,7 +110,7 @@ const DialogTrigger = ({
                         openDialog();
                     }
                 }
-            } as any);
+            });
         }
         return child;
     });

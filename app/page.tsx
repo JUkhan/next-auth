@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { auth } from "@/auth";
 import { AuthButton } from "./AuthButton.server";
-
+import Counter from "./counter";
+import Todo from "./todo";
 export default async function Home() {
   const session = await auth();
   return (
@@ -53,7 +54,8 @@ export default async function Home() {
           </div>
           <AuthButton />
           <pre>{JSON.stringify(session, null, 4)}</pre>
-          
+          <Counter />
+          <Todo />  
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
