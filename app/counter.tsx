@@ -1,26 +1,30 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useSelector, write } from '@/app/appState';
+import { useSelector, write, read } from '@/app/appState';
 
+const decrement = () => {
+    write(state =>{
+        const counter={...state.counter};
+        counter.count--;
+        return {counter}
+    });
+};
 
+const increment = () => {
+    write(state => ({ counter: { count: state.counter.count! + 1, loading: false } }));
+};
+
+const asyncInc = () => {
+    write(state => ({ counter: { ...state.counter, loading: true } }));
+    setTimeout(() => {
+        write(state => ({ counter: { count: state.counter.count! + 1, loading: false } }));
+    }, 1000);
+}
 
 const Counter: React.FC = () => {
     const {count, loading} = useSelector(state => state.counter);
-    
-    const decrement = () => {
-        write(state => ({ counter: { count: state.counter.count! - 1, loading: false } }));
-    };
-    const increment = () => {
-        write(state => ({ counter: { count: state.counter.count! + 1, loading: false } }));
-    };
-    const asyncInc = () => {
-        write(state => ({ counter: { ...state.counter, loading: true } }));
-        setTimeout(() => {
-            write(state => ({ counter: { count: state.counter.count! + 1, loading: false } }));
-        }, 1000);
-    }
 
     const loadingText = loading ? "Loading..." : count;
     
