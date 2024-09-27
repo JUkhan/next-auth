@@ -15,7 +15,7 @@ export type AppState = {
     newTodo:string;
 }
 
-export const {read, write, dispatch, useStoreEffect, useSelector} = createState<AppState>({
+export const {read, write, dispatch, useStateEffect, useSelector} = createState<AppState>({
     counter: {
         count: 0,
         loading: false,

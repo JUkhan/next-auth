@@ -37,24 +37,51 @@ function shallowEqual(objA: any, objB: any) {
     return true;
 }
 
+
+/**
+ * Creates a state management system for a given initial value.
+ * 
+ * @param initialValue - The initial state value of type T.
+ * @returns An object containing methods to read, write, dispatch actions, and use selectors and effects.
+ * 
+ * @template T - The type of the state object.
+ * 
+ * @example
+ * const { read, write, dispatch, useStoreEffect, useSelector } = createState({ count: 0 });
+ * 
+ * // Reading the state
+ * const currentState = read();
+ * 
+ * // Writing to the state
+ * write(state => ({ count: state.count + 1 }));
+ * 
+ * // Dispatching an action
+ * dispatch({ type: 'INCREMENT' });
+ * 
+ * // Using a selector
+ * const count = useSelector(state => state.count);
+ * 
+ * // Using state effect
+ * useStateEffect(action => action.type === 'INCREMENT', action => {
+ *     console.log('Increment action dispatched:', action);
+ * });
+ */
 export function createState<T extends object>(initialValue: T): {
     read: () => T;
-    write: (fn: (state: T) => Partial<T>) => void;
+    write: (fn: Partial<T> | ((state: T) => Partial<T>))=> void;
     dispatch: (action: any) => void;
-    useStoreEffect: (matcher: (action: any) => boolean, callback: (action: any) => void) => void;
+    useStateEffect: (matcher: (action: any) => boolean, callback: (action: any) => void) => void;
     useSelector: <S>(selector: (state: T) => S) => S;
 } {
     let value = initialValue;
     const subscribers = new Set<(value: T) => void>();
     const dispatcher = new Set<(value: any) => void>();
     const read = () => value as T;
-
-    const write = (fn: (state: T) => Partial<T>) => {
-        value = Object.assign({}, value, fn(value));
+    const write = (fn: Partial<T> | ((state: T) => Partial<T>)):void => {
+        value = Object.assign({}, value, typeof fn ==='function'? fn(value): fn);
         Object.freeze(value);
         subscribers.forEach(subscriber => subscriber(value));
     };
-
     const subscribe = (subscriber: (value: T) => void) => {
         subscribers.add(subscriber);
         return () => subscribers.delete(subscriber);
@@ -65,7 +92,7 @@ export function createState<T extends object>(initialValue: T): {
             const unsubscribe = subscribe((newValue: T) => {
                 const selectedValue = selector(newValue);
                 if (!shallowEqual(selectedValue, value)) {
-                    setValue(_ => selectedValue);
+                    setValue((old: S) => selectedValue);
                 }
             });
             return () => {
@@ -75,7 +102,7 @@ export function createState<T extends object>(initialValue: T): {
 
         return value;
     };
-    const useStoreEffect = (matcher: (value: any) => boolean, callback: (value: any) => void) => {
+    const useStateEffect = (matcher: (value: any) => boolean, callback: (value: any) => void) => {
         React.useEffect(() => {
             const unsubscribe = subscribeForDispatcher((newValue) => {
                 if (matcher(newValue)) {
@@ -98,6 +125,6 @@ export function createState<T extends object>(initialValue: T): {
             dispatcher.forEach(subscriber => subscriber(action));
         }
     };
-
-    return { read, write, dispatch, useStoreEffect, useSelector };
+    
+    return { read, write, dispatch, useStateEffect, useSelector };
 }

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSelector, write, read, type AppState } from '@/app/appState';
+import { useSelector, write, read, useStateEffect, type AppState } from '@/app/appState';
 
 
 const addTodo = () => {
@@ -18,7 +18,7 @@ const addTodo = () => {
             }];
             return { todos }
         });
-        write(state => ({ newTodo: '' }));
+        write({newTodo:""});
     }
 };
 
@@ -46,13 +46,15 @@ const newTodoSelector = (state: AppState) => state.newTodo;
 const Todo: React.FC = () => {
     const newTodo = useSelector(newTodoSelector);
     const { items, visibility } = useSelector(todoSelector);
+    useStateEffect(action=>action.type==='by', action=>{
+        console.log(`incremented by ${action.val}`);
+    })
 
     const filteredTodos = useMemo(() => items.filter(todo => {
         if (visibility === 'active') return !todo.completed;
         if (visibility === 'completed') return todo.completed;
         return true;
     }), [items, visibility]);
-   
     return (
         <div className="flex flex-col items-center space-y-4">
             <h2 className="text-2xl font-bold">Todo List</h2>
@@ -60,7 +62,7 @@ const Todo: React.FC = () => {
                 <Input
                     type="text"
                     value={newTodo}
-                    onChange={(e) => write(state => ({ newTodo: e.target.value }))}
+                    onChange={(e) => write({ newTodo: e.target.value })}
                     placeholder="Add new todo"
                 />
                 <Button onClick={addTodo}>Add</Button>
