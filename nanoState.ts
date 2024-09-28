@@ -37,7 +37,6 @@ function shallowEqual(objA: any, objB: any) {
     return true;
 }
 
-
 /**
  * Creates a state management system for a given initial value.
  * 
@@ -68,56 +67,47 @@ function shallowEqual(objA: any, objB: any) {
  */
 export function createState<T extends object>(initialValue: T): {
     getState: () => T;
-    setState: (fn: Partial<T> | ((state: T) => Partial<T>))=> void;
+    setState: (fn: Partial<T> | ((state: T) => Partial<T>)) => void;
     dispatch: (action: any) => void;
     useStateEffect: (matcher: (action: any) => boolean, callback: (action: any) => void) => void;
     useSelector: <S>(selector: (state: T) => S) => S;
-    select:  <S>(selector: (state: T) => S) => S;
+    select: <S>(selector: (state: T) => S) => S;
+    subscribe: (subscriber: (value: T) => void) => () => void;
 } {
     let value = initialValue;
     const subscribers = new Set<(value: T) => void>();
     const dispatcher = new Set<(value: any) => void>();
     const getState = () => value as T;
-    const setState = (fn: Partial<T> | ((state: T) => Partial<T>)):void => {
-        value = Object.assign({}, value, typeof fn ==='function'? fn(value): fn);
-        Object.freeze(value);
+    const setState = (fn: Partial<T> | ((state: T) => Partial<T>)): void => {
+        Object.assign(value, typeof fn === 'function' ? fn(value) : fn);
         subscribers.forEach(subscriber => subscriber(value));
+    };
+    const useSelector = <S>(selector: (state: T) => S): S => {
+        const [, forceRender] = React.useState(0);
+        const slice = React.useRef(selector(value))
+        React.useEffect(() => subscribe((newValue: T) => {
+            const selectedValue = selector(newValue);
+            if (!shallowEqual(selectedValue, slice.current)) {
+                forceRender((prev: number) => (prev + 1) % Number.MAX_SAFE_INTEGER);
+                slice.current = selectedValue;
+            }
+        }), []);
+        return slice.current;
     };
     const subscribe = (subscriber: (value: T) => void) => {
         subscribers.add(subscriber);
-        return () => subscribers.delete(subscriber);
+        return () => { subscribers.delete(subscriber); }
     };
-    const useSelector = <S>(selector: (state: T) => S): S => {
-        const [value, setValue] = React.useState(selector(getState()));
-        React.useEffect(() => {
-            const unsubscribe = subscribe((newValue: T) => {
-                const selectedValue = selector(newValue);
-                if (!shallowEqual(selectedValue, value)) {
-                    setValue((old: S) => selectedValue);
-                }
-            });
-            return () => {
-                unsubscribe();
-            };
-        }, [selector, value]);
-
-        return value;
-    };
-    const useStateEffect = (matcher: (value: any) => boolean, callback: (value: any) => void) => {
-        React.useEffect(() => {
-            const unsubscribe = subscribeForDispatcher((newValue) => {
-                if (matcher(newValue)) {
-                    callback(newValue);
-                }
-            });
-            return () => {
-                unsubscribe();
-            };
-        }, [matcher, callback]);
+    const useStateEffect = (matcher: (action: any) => boolean, callback: (action: any) => void) => {
+        React.useEffect(() => subscribeForDispatcher((action) => {
+            if (matcher(action)) {
+                callback(action);
+            }
+        }), []);
     };
     const subscribeForDispatcher = (subscriber: (value: T) => void) => {
         dispatcher.add(subscriber);
-        return () => dispatcher.delete(subscriber);
+        return () => { dispatcher.delete(subscriber); }
     };
     const dispatch = (action: any) => {
         if (typeof action === 'function') {
@@ -127,32 +117,32 @@ export function createState<T extends object>(initialValue: T): {
         }
     };
     const select = <S>(selector: (state: T) => S): S => {
-        const target = selector(value) as any
-        if(Array.isArray(target)){
+        const target = selector(value) as any;
+        if (Array.isArray(target)) {
             return target.slice() as S;
         }
-        else if(typeof target ==='object'){
-            return Object.keys(target).reduce((newObj, prop)=>{
-                if(Array.isArray(target[prop])){
-                    newObj[prop]= target[prop].slice();
-                }else{
-                    newObj[prop]= target[prop]
+        else if (typeof target === 'object') {
+            return Object.keys(target).reduce((newObj, prop) => {
+                if (Array.isArray(target[prop])) {
+                    newObj[prop] = target[prop].slice();
+                } else {
+                    newObj[prop] = target[prop]
                 }
                 return newObj;
-            },{} as any) as S;
+            }, {} as any) as S;
         }
         return target;
     };
-    
-    return { getState, setState, dispatch, useStateEffect, useSelector, select };
+
+    return { getState, setState, dispatch, useStateEffect, useSelector, select, subscribe };
 }
 
-export const useProxyState=<T>(initialState: T):T=>{
-    const [, setState]=React.useState(0)
-    return React.useMemo(()=>new Proxy(initialState as any,{
-        set(target, prop, val){
-            target[prop]=val;
-            setState(prev=>(prev+1)%Number.MAX_SAFE_INTEGER);
+export const useProxyState = <T>(initialState: T): T => {
+    const [, setState] = React.useState(0)
+    return React.useMemo(() => new Proxy(initialState as any, {
+        set(target, prop, val) {
+            target[prop] = val;
+            setState(prev => (prev + 1) % Number.MAX_SAFE_INTEGER);
             return true;
         }
     }), []) as T

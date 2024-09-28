@@ -10,7 +10,7 @@ const Todo: React.FC = () => {
     const newTodo = useSelector(todoController.newTodoSelector);
     const { items, visibility } = useSelector(todoController.todoSelector);
     useStateEffect(action => action.type === 'by', action => {
-        console.log(`incremented by ${action.val}`);
+        console.log(`-----incremented by ${action.val}`);
     })
 
     const filteredTodos = useMemo(() => items.filter(todo => {
@@ -18,7 +18,7 @@ const Todo: React.FC = () => {
         if (visibility === 'completed') return todo.completed;
         return true;
     }), [items, visibility]);
-
+    
     return (
         <div className="flex flex-col items-center space-y-4">
             <h2 className="text-2xl font-bold">Todo List</h2>
