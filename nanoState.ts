@@ -146,3 +146,14 @@ export function createState<T extends object>(initialValue: T): {
     
     return { getState, setState, dispatch, useStateEffect, useSelector, select };
 }
+
+export const useProxyState=<T>(initialState: T):T=>{
+    const [, setState]=React.useState(0)
+    return React.useMemo(()=>new Proxy(initialState as any,{
+        set(target, prop, val){
+            target[prop]=val;
+            setState(prev=>(prev+1)%Number.MAX_SAFE_INTEGER);
+            return true;
+        }
+    }), []) as T
+}
