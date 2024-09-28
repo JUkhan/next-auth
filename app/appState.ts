@@ -1,4 +1,4 @@
-import { createState } from "@/nanoState";
+import { createState } from "@jukhan/nano-state";
 export type AppState = {
     counter: {
         count: number;
@@ -15,7 +15,7 @@ export type AppState = {
     newTodo:string;
 }
 
-export const {read, write, dispatch, useStateEffect, useSelector} = createState<AppState>({
+export const {getState, setState, dispatch, useStateEffect, useSelector, select} = createState<AppState>({
     counter: {
         count: 0,
         loading: false,

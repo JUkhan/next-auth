@@ -3,50 +3,13 @@
 import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSelector, write, read, useStateEffect, type AppState } from '@/app/appState';
-
-
-const addTodo = () => {
-    const newTodo = read().newTodo;
-    if (newTodo.trim()) {
-        write(state => {
-            const todos = { ...state.todos };
-            todos.items = [...todos.items, {
-                id: Date.now(),
-                text: newTodo.trim(),
-                completed: false
-            }];
-            return { todos }
-        });
-        write({newTodo:""});
-    }
-};
-
-const toggleTodo = (id: number) => {
-    write(state => ({
-        todos: {
-            ...state.todos,
-            items: state.todos.items!.map(todo =>
-                todo.id === id ? { ...todo, completed: !todo.completed } : todo
-            )
-        }
-    }));
-};
-
-
-const setVisibility = (newVisibility: 'all' | 'active' | 'completed') => {
-    write(state => ({
-        todos: { ...state.todos, visibility: newVisibility }
-    }));
-};
-
-const todoSelector = (state: AppState) => state.todos;
-const newTodoSelector = (state: AppState) => state.newTodo;
+import { setState, useSelector, useStateEffect } from '@/app/appState';
+import todoController from './todoController';
 
 const Todo: React.FC = () => {
-    const newTodo = useSelector(newTodoSelector);
-    const { items, visibility } = useSelector(todoSelector);
-    useStateEffect(action=>action.type==='by', action=>{
+    const newTodo = useSelector(todoController.newTodoSelector);
+    const { items, visibility } = useSelector(todoController.todoSelector);
+    useStateEffect(action => action.type === 'by', action => {
         console.log(`incremented by ${action.val}`);
     })
 
@@ -55,6 +18,7 @@ const Todo: React.FC = () => {
         if (visibility === 'completed') return todo.completed;
         return true;
     }), [items, visibility]);
+
     return (
         <div className="flex flex-col items-center space-y-4">
             <h2 className="text-2xl font-bold">Todo List</h2>
@@ -62,15 +26,15 @@ const Todo: React.FC = () => {
                 <Input
                     type="text"
                     value={newTodo}
-                    onChange={(e) => write({ newTodo: e.target.value })}
+                    onChange={(e) => setState({ newTodo: e.target.value })}
                     placeholder="Add new todo"
                 />
-                <Button onClick={addTodo}>Add</Button>
+                <Button onClick={todoController.addTodo}>Add</Button>
             </div>
             <div className="flex space-x-2">
-                <Button onClick={() => setVisibility('all')}>All</Button>
-                <Button onClick={() => setVisibility('active')}>Active</Button>
-                <Button onClick={() => setVisibility('completed')}>Completed</Button>
+                <Button onClick={() => todoController.setVisibility('all')}>All</Button>
+                <Button onClick={() => todoController.setVisibility('active')}>Active</Button>
+                <Button onClick={() => todoController.setVisibility('completed')}>Completed</Button>
             </div>
             <ul className="space-y-2">
                 {filteredTodos.map(todo => (
@@ -78,7 +42,7 @@ const Todo: React.FC = () => {
                         <input
                             type="checkbox"
                             checked={todo.completed}
-                            onChange={() => toggleTodo(todo.id)}
+                            onChange={() => todoController.toggleTodo(todo.id)}
                         />
                         <span className={todo.completed ? 'line-through' : ''}>
                             {todo.text}
